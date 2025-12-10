@@ -1,12 +1,20 @@
+# 直接创建正确的 index.html
+cat > index.html << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite React App</title>
+    <title>French Learning App</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+EOF
+
+# 提交
+git add index.html
+git commit -m "fix: ensure index.html references main.tsx"
+git push
