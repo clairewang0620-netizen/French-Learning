@@ -1,0 +1,14 @@
+# 在项目根目录运行
+mkdir -p public
+touch public/manifest.json
+
+{
+  "name": "慢慢学法语",
+  "short_name": "FrançaisFacile",
+  "description": "法语学习应用程序",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": []
+}
