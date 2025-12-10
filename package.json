@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",  // 先移除 tsc，只保留 vite build
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
