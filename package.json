@@ -6,11 +6,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    // 添加以下部署脚本
-    "deploy": "echo 'Deploying to Cloudflare Pages...' && echo 'Please configure deployment manually in Cloudflare dashboard'",
-    "cf:deploy": "wrangler pages deploy dist --project-name=francais-facile",
-    "cf:dev": "wrangler pages dev dist --live-reload",
-    "cf:prod": "npm run build && npm run cf:deploy"
+    "deploy": "npm run build"
   },
   "dependencies": {
     "@types/node": "^22.19.2",
@@ -21,9 +17,5 @@
     "recharts": "^3.5.1",
     "typescript": "^5.8.3",
     "vite": "^6.4.1"
-  },
-  "devDependencies": {
-    // 添加 wrangler 用于 Cloudflare 部署
-    "wrangler": "^3.115.0"
   }
 }
