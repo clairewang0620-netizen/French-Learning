@@ -1,16 +1,7 @@
-# 在项目根目录运行
-touch vite.config.js
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+# 删除有问题的文件
+rm vite.config.js
 
-export default defineConfig({
-  plugins: [react()],
-  build: {
-    outDir: 'dist',
-    sourcemap: false
-  },
-  server: {
-    port: 3000,
-    open: true
-  }
-})
+# 提交更改
+git add .
+git commit -m "fix: 删除有问题的vite配置"
+git push
