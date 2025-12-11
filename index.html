@@ -4,17 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Français Facile - 慢慢学法语</title>
-
-  <!-- React 18 CDN（Safari、国内浏览器全兼容） -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-  <!-- Lucide icons（兼容国内） -->
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
-
-  <!-- Recharts（无需 importmap） -->
-  <script src="https://unpkg.com/recharts/umd/Recharts.min.js"></script>
-
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -22,7 +11,7 @@
       margin: 0;
       padding: 20px;
     }
-    #root {
+    #container {
       max-width: 900px;
       margin: 0 auto;
       background: white;
@@ -30,24 +19,49 @@
       border-radius: 12px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
+    #content { display: none; }
+    input { padding: 10px; font-size: 1em; width: 60%; }
+    button { padding: 10px 20px; font-size: 1em; margin-left: 10px; cursor: pointer; }
   </style>
 </head>
-
 <body>
-  <div id="root"></div>
+  <div id="container">
+    <div id="access">
+      <h2>请输入访问码访问课程</h2>
+      <input type="text" id="codeInput" placeholder="访问码">
+      <button onclick="checkCode()">确认</button>
+    </div>
+
+    <div id="content">
+      <h1>🇫🇷 慢慢学法语</h1>
+      <p>欢迎来到法语学习课程！</p>
+      <div class="lesson">
+        <h3>Lesson 1: Greetings</h3>
+        <p><strong>Bonjour</strong> - Hello / Good day</p>
+        <p><strong>Merci</strong> - Thank you</p>
+        <p><strong>Au revoir</strong> - Goodbye</p>
+      </div>
+      <div class="lesson">
+        <h3>Lesson 2: Basic Phrases</h3>
+        <p><strong>Comment ça va?</strong> - How are you?</p>
+        <p><strong>Je m'appelle...</strong> - My name is...</p>
+        <p><strong>Où est...?</strong> - Where is...?</p>
+      </div>
+      <p>更多课程内容即将上线！</p>
+    </div>
+  </div>
 
   <script>
-    const App = () => {
-      return React.createElement(
-        "div",
-        null,
-        React.createElement("h1", null, "🇫🇷 慢慢学法语（兼容所有浏览器）"),
-        React.createElement("p", null, "此页面已优化，可在 Safari 和中国大陆浏览器正常打开。")
-      );
-    };
-
-    const root = ReactDOM.createRoot(document.getElementById("root"));
-    root.render(React.createElement(App));
+    const validCode = "VIP123"; // 设置访问码
+    function checkCode() {
+      const input = document.getElementById("codeInput").value.trim();
+      if(input === validCode) {
+        document.getElementById("access").style.display = "none";
+        document.getElementById("content").style.display = "block";
+      } else {
+        alert("访问码错误，请重新输入！");
+      }
+    }
   </script>
 </body>
 </html>
