@@ -58,6 +58,12 @@ export const addStudyTime = (minutes: number) => {
   saveProgress(current);
 };
 
+// Helper to get status for UI lists
+export const getWordStatus = (id: string): WrongItem | null => {
+  const progress = getProgress();
+  return progress.mistakes[id] || null;
+};
+
 // Spaced Repetition Logic (Simplified Sm-2 inspired)
 export const markItemResult = (id: string, type: 'word' | 'sentence' | 'quiz', isCorrect: boolean) => {
   const progress = getProgress();
