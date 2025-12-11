@@ -5,7 +5,15 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   build: {
-    target: 'es2015',
+    target: 'es2015', // Support older browsers/mobile Safari
     outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor code to improve loading reliability
+          vendor: ['react', 'react-dom', 'recharts', 'lucide-react'],
+        },
+      },
+    },
   }
 });
