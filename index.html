@@ -1,45 +1,58 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Français Facile - 慢慢学法语</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>French Learning</title>
     <style>
-      body {
-        font-family: 'Inter', 'Noto Sans SC', sans-serif;
-        background-color: #f8fafc;
-      }
-      /* Custom scrollbar for better aesthetics */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #f1f5f9;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-      }
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .lesson {
+            margin: 20px 0;
+            padding: 15px;
+            border-left: 4px solid #4CAF50;
+            background: #f9f9f9;
+        }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0",
-    "recharts": "https://aistudiocdn.com/recharts@^3.5.1"
-  }
-}
-</script>
 </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<body>
+    <div class="container">
+        <h1>🇫🇷 French Learning App</h1>
+        <p>Welcome to the French Learning application!</p>
+        
+        <div class="lesson">
+            <h3>Lesson 1: Greetings</h3>
+            <p><strong>Bonjour</strong> - Hello / Good day</p>
+            <p><strong>Merci</strong> - Thank you</p>
+            <p><strong>Au revoir</strong> - Goodbye</p>
+        </div>
+        
+        <div class="lesson">
+            <h3>Lesson 2: Basic Phrases</h3>
+            <p><strong>Comment ça va?</strong> - How are you?</p>
+            <p><strong>Je m'appelle...</strong> - My name is...</p>
+            <p><strong>Où est...?</strong> - Where is...?</p>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <p>More lessons coming soon!</p>
+            <p style="color: #666; font-size: 0.9em;">This is a static version of the French Learning app.</p>
+        </div>
+    </div>
+</body>
 </html>
