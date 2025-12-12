@@ -1,8 +1,9 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Word, Level } from '../types';
-import { Volume2, RotateCw, CheckCircle2, XCircle, Tag, Filter, List, Play, ArrowLeft, MoreHorizontal, AlertCircle } from 'lucide-react';
+import { Volume2, RotateCw, CheckCircle2, XCircle, Tag, Filter, List, ArrowLeft, AlertCircle } from 'lucide-react';
 import { markItemResult, getWordStatus } from '../services/storageService';
+import { playTTS } from '../utils/tts';
 
 interface FlashcardsProps {
   words: Word[];
@@ -33,7 +34,7 @@ const Flashcards: React.FC<FlashcardsProps> = ({ words }) => {
   // Reset pagination when filters change
   useEffect(() => {
      if (viewMode === 'list') {
-         // Optional: Reset stats or index if needed, but keeping selection feels better
+         // Optional: Reset stats or index if needed
      }
   }, [selectedLevel, selectedCategory]);
 
@@ -45,11 +46,10 @@ const Flashcards: React.FC<FlashcardsProps> = ({ words }) => {
     return ['All', ...Array.from(cats)];
   }, [words]);
 
-  const playAudio = (e: React.MouseEvent, text: string) => {
-    e.stopPropagation();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'fr-FR';
-    window.speechSynthesis.speak(utterance);
+  // Updated Audio Handler
+  const handlePlayAudio = (e: React.MouseEvent, text: string) => {
+    e.stopPropagation(); // Prevent card flip or list click
+    playTTS(text);
   };
 
   const handleStartStudy = (index: number) => {
@@ -156,7 +156,7 @@ const Flashcards: React.FC<FlashcardsProps> = ({ words }) => {
                                         <p className="text-slate-500 text-sm">{word.chinese}</p>
                                     </div>
                                     <button 
-                                        onClick={(e) => playAudio(e, word.french)}
+                                        onClick={(e) => handlePlayAudio(e, word.french)}
                                         className="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all"
                                     >
                                         <Volume2 size={18} />
@@ -220,7 +220,7 @@ const Flashcards: React.FC<FlashcardsProps> = ({ words }) => {
             <div className="flex items-center gap-2 mb-8">
                  {currentWord.gender && <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-xs font-mono">{currentWord.gender === 'm' ? 'masc.' : 'fem.'}</span>}
                  <button 
-                    onClick={(e) => playAudio(e, currentWord.french)}
+                    onClick={(e) => handlePlayAudio(e, currentWord.french)}
                     className="p-3 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition-colors"
                 >
                     <Volume2 size={24} />
