@@ -1,17 +1,18 @@
 // components/Flashcards.jsx
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Volume2, RotateCw, CheckCircle2, XCircle, Tag, Filter, List, ArrowLeft } from 'lucide-react';
 import { markItemResult, getWordStatus } from '../services/storageService';
 import { Level } from '../types';
 
 const Flashcards = ({ words }) => {
-  const [viewMode, setViewMode] = useState('list');
+  const [viewMode, setViewMode] = useState('list'); // 'list' 或 'study'
   const [selectedLevel, setSelectedLevel] = useState('All');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [sessionStats, setSessionStats] = useState({ correct: 0, wrong: 0 });
 
+  // 筛选单词
   const filteredWords = useMemo(() => {
     return words.filter(w => {
       const matchLevel = selectedLevel === 'All' || w.level === selectedLevel;
@@ -22,12 +23,13 @@ const Flashcards = ({ words }) => {
 
   const currentWord = filteredWords[currentIndex];
 
+  // 分类选项
   const categories = useMemo(() => {
     const cats = new Set(words.map(w => w.category));
     return ['All', ...Array.from(cats)];
   }, [words]);
 
-  // 播放 Gemini TTS 返回的 MP3
+  // 播放 TTS 音频
   const playAudio = async (e, text) => {
     e.stopPropagation();
     try {
@@ -36,7 +38,8 @@ const Flashcards = ({ words }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text })
       });
-      if (!res.ok) throw new Error('TTS 请求失败');
+      if (!res.ok) throw new Error("TTS 请求失败");
+
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
@@ -59,7 +62,6 @@ const Flashcards = ({ words }) => {
     else setSessionStats(prev => ({ ...prev, wrong: prev.wrong + 1 }));
 
     setIsFlipped(false);
-
     if (currentIndex < filteredWords.length - 1) {
       setTimeout(() => setCurrentIndex(prev => prev + 1), 300);
     } else {
@@ -68,7 +70,7 @@ const Flashcards = ({ words }) => {
     }
   };
 
-  // --- 列表视图 ---
+  // ---------- 列表视图 ----------
   if (viewMode === 'list') {
     return (
       <div className="w-full max-w-5xl mx-auto px-2 md:px-4">
@@ -76,14 +78,13 @@ const Flashcards = ({ words }) => {
           <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <List className="text-indigo-600" /> 单词列表
           </h2>
-
           <div className="flex flex-wrap gap-2 items-center bg-white p-2 rounded-xl border border-slate-100 shadow-sm">
             <div className="flex items-center gap-2 text-slate-400 px-2">
               <Filter size={16} />
             </div>
             <select
               value={selectedLevel}
-              onChange={e => setSelectedLevel(e.target.value)}
+              onChange={(e) => setSelectedLevel(e.target.value)}
               className="bg-slate-50 border-transparent rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 hover:bg-slate-100 transition-colors"
             >
               <option value="All">所有等级</option>
@@ -96,13 +97,11 @@ const Flashcards = ({ words }) => {
 
             <select
               value={selectedCategory}
-              onChange={e => setSelectedCategory(e.target.value)}
+              onChange={(e) => setSelectedCategory(e.target.value)}
               className="bg-slate-50 border-transparent rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 hover:bg-slate-100 transition-colors"
             >
               {categories.map(c => (
-                <option key={c} value={c}>
-                  {c === 'All' ? '所有分类' : c}
-                </option>
+                <option key={c} value={c}>{c === 'All' ? '所有分类' : c}</option>
               ))}
             </select>
           </div>
@@ -125,32 +124,25 @@ const Flashcards = ({ words }) => {
                   className="bg-white p-4 rounded-xl border border-slate-100 hover:border-indigo-300 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"
                 >
                   <div className="flex justify-between items-start mb-2">
-                    <span
-                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        word.level.startsWith('A')
-                          ? 'bg-green-100 text-green-700'
-                          : word.level.startsWith('B')
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-purple-100 text-purple-700'
-                      }`}
-                    >
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      word.level.startsWith('A') ? 'bg-green-100 text-green-700' :
+                      word.level.startsWith('B') ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                    }`}>
                       {word.level}
                     </span>
-
                     {status && (
                       <div className="flex items-center gap-1 text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
                         待复习 ({status.masteryLevel}/5)
                       </div>
                     )}
                   </div>
-
                   <div className="flex justify-between items-center">
                     <div>
                       <h3 className="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">{word.french}</h3>
                       <p className="text-slate-500 text-sm">{word.chinese}</p>
                     </div>
                     <button
-                      onClick={e => playAudio(e, word.french)}
+                      onClick={(e) => playAudio(e, word.french)}
                       className="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all"
                     >
                       <Volume2 size={18} />
@@ -168,7 +160,7 @@ const Flashcards = ({ words }) => {
     );
   }
 
-  // --- 学习模式 ---
+  // ---------- 学习卡片视图 ----------
   if (!currentWord) return <div className="p-8 text-center text-slate-500">加载中...</div>;
 
   return (
@@ -187,41 +179,30 @@ const Flashcards = ({ words }) => {
         </div>
       </div>
 
-      {/* 卡片 */}
+      {/* Card 容器 */}
       <div
         className="relative w-full h-[450px] cursor-pointer perspective-1000 group mb-8"
         onClick={() => setIsFlipped(!isFlipped)}
       >
-        <div
-          className={`relative w-full h-full duration-500 preserve-3d transition-transform ${isFlipped ? 'rotate-y-180' : ''}`}
-          style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : '' }}
-        >
-          {/* 正面 */}
-          <div
-            className="absolute w-full h-full bg-white rounded-3xl shadow-xl border border-slate-200 p-8 flex flex-col items-center justify-center backface-hidden"
-            style={{ backfaceVisibility: 'hidden' }}
-          >
+        <div className={`relative w-full h-full duration-500 preserve-3d transition-transform ${isFlipped ? 'rotate-y-180' : ''}`} style={{ transformStyle: 'preserve-3d', transform: isFlipped ? 'rotateY(180deg)' : '' }}>
+          {/* Front */}
+          <div className="absolute w-full h-full bg-white rounded-3xl shadow-xl border border-slate-200 p-8 flex flex-col items-center justify-center backface-hidden" style={{ backfaceVisibility: 'hidden' }}>
             <div className="absolute top-6 right-6">
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase ${
-                  currentWord.level.startsWith('A')
-                    ? 'bg-green-100 text-green-700'
-                    : currentWord.level.startsWith('B')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-purple-100 text-purple-700'
-                }`}
-              >
+              <span className={`px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase ${
+                currentWord.level.startsWith('A') ? 'bg-green-100 text-green-700' :
+                currentWord.level.startsWith('B') ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+              }`}>
                 {currentWord.level}
               </span>
             </div>
             <span className="text-slate-400 uppercase tracking-widest text-xs font-bold mb-4 flex items-center gap-1">
-              <Tag size={12} /> {currentWord.category}
+              <Tag size={12}/> {currentWord.category}
             </span>
             <h2 className="text-5xl md:text-6xl font-bold text-slate-800 text-center mb-6 break-words max-w-full">{currentWord.french}</h2>
             <div className="flex items-center gap-2 mb-8">
               {currentWord.gender && <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-xs font-mono">{currentWord.gender === 'm' ? 'masc.' : 'fem.'}</span>}
               <button
-                onClick={e => playAudio(e, currentWord.french)}
+                onClick={(e) => playAudio(e, currentWord.french)}
                 className="p-3 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition-colors"
               >
                 <Volume2 size={24} />
@@ -232,20 +213,15 @@ const Flashcards = ({ words }) => {
             </p>
           </div>
 
-          {/* 背面 */}
-          <div
-            className="absolute w-full h-full bg-slate-900 rounded-3xl shadow-xl p-8 flex flex-col items-center justify-center backface-hidden text-white rotate-y-180"
-            style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
-          >
+          {/* Back */}
+          <div className="absolute w-full h-full bg-slate-900 rounded-3xl shadow-xl p-8 flex flex-col items-center justify-center backface-hidden text-white rotate-y-180" style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
             <div className="text-center w-full">
               <h3 className="text-3xl font-bold mb-2">{currentWord.chinese}</h3>
               <p className="text-indigo-300 text-xl font-mono mb-6 border-b border-indigo-500/30 pb-4 inline-block">{currentWord.ipa}</p>
-
               <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm mb-4 text-left">
                 <p className="text-indigo-100 italic mb-2 text-lg">"{currentWord.example}"</p>
                 <p className="text-slate-400 text-sm">{currentWord.example_chinese}</p>
               </div>
-
               <div className="flex flex-wrap justify-center gap-2 mt-4">
                 {currentWord.synonyms && currentWord.synonyms.length > 0 && (
                   <div className="text-xs text-slate-400 w-full mb-2">
@@ -262,7 +238,7 @@ const Flashcards = ({ words }) => {
         </div>
       </div>
 
-      {/* 操作按钮 */}
+      {/* Controls */}
       <div className="flex gap-4 w-full max-w-md">
         <button
           onClick={() => handleNext(false)}
