@@ -1,37 +1,40 @@
 // functions/tts.js
 export async function onRequest(context) {
   const { request, env } = context;
+
   try {
     const { text } = await request.json();
+    if (!text) return new Response(JSON.stringify({ error: "Missing text" }), { status: 400 });
 
-    if (!text) {
-      return new Response(JSON.stringify({ error: "Missing text" }), { status: 400 });
-    }
+    // Gemini TTS API URL
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${env.AI_STUDIO_API_KEY}`;
 
-    // AI Studio TTS API
-    const res = await fetch("https://aistudio.google.com/api/tts", {
+    // 调用 Gemini 生成 MP3
+    const res = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${env.AI_STUDIO_API_KEY}` // 你在 Pages 里配置的 secret
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        text: text,
-        voice: "fr-FR",   // 法语
-        format: "mp3"
+        contents: [{ parts: [{ text }] }],
+        generationConfig: { audioConfig: { audioEncoding: "MP3" } }
       })
     });
 
     if (!res.ok) {
-      const textErr = await res.text();
-      return new Response(JSON.stringify({ error: textErr }), { status: 500 });
+      const errText = await res.text();
+      return new Response(JSON.stringify({ error: errText }), { status: 500 });
     }
 
-    const arrayBuffer = await res.arrayBuffer();
-    return new Response(arrayBuffer, {
-      headers: {
-        "Content-Type": "audio/mpeg"
-      }
+    const data = await res.json();
+
+    // Gemini 返回的 audioContent（Base64）
+    const audioBase64 = data?.candidates?.[0]?.audio?.audioUri || data?.candidates?.[0]?.audio?.audioContent;
+    if (!audioBase64) throw new Error("No audio returned");
+
+    // 转为 ArrayBuffer
+    const audioBuffer = Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0));
+
+    return new Response(audioBuffer, {
+      headers: { "Content-Type": "audio/mpeg" }
     });
 
   } catch (err) {
