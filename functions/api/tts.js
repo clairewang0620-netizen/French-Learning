@@ -1,36 +1,29 @@
-export async function onRequest(context) {
-  const { request, env } = context;
-
+// functions/api/tts.js
+export async function onRequest({ request, env }) {
   try {
     const { text } = await request.json();
     if (!text) return new Response(JSON.stringify({ error: "Missing text" }), { status: 400 });
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${env.AI_STUDIO_API_KEY}`;
-
-    const res = await fetch(url, {
+    const res = await fetch("https://aistudio.google.com/api/tts", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${env.AI_STUDIO_API_KEY}`
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text }] }],
-        generationConfig: { audioConfig: { audioEncoding: "MP3" } }
+        text,
+        voice: "fr-FR",  // 法语发音
+        format: "mp3"
       })
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      return new Response(JSON.stringify({ error: errText }), { status: 500 });
+      const textErr = await res.text();
+      return new Response(JSON.stringify({ error: textErr }), { status: 500 });
     }
 
-    const data = await res.json();
-    const audioBase64 = data?.candidates?.[0]?.audio?.audioContent;
-    if (!audioBase64) throw new Error("No audio returned");
-
-    const audioBuffer = Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0));
-
-    return new Response(audioBuffer, {
-      headers: { "Content-Type": "audio/mpeg" }
-    });
-
+    const arrayBuffer = await res.arrayBuffer();
+    return new Response(arrayBuffer, { headers: { "Content-Type": "audio/mpeg" } });
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
