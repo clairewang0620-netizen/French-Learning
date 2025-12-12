@@ -8,21 +8,18 @@ export async function onRequest(context) {
       return new Response(JSON.stringify({ error: "Missing text" }), { status: 400 });
     }
 
-    // Gemini TTS API URL
-    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent";
+    // Gemini TTS 正确 URL
+    const url = "https://generativelanguage.googleapis.com/v1beta2/text:speech:synthesize";
 
+    // 请求体格式（最新 Gemini TTS）
     const body = {
-      prompt: [
-        {
-          content: text,
-          type: "TEXT"
-        }
-      ],
+      input: { text },
+      voice: {
+        languageCode: "fr-FR",
+        name: "fr-FR-Standard-A"
+      },
       audioConfig: {
-        audioEncoding: "MP3",
-        speakingRate: 1.0,
-        pitch: 0,
-        voice: "fr-FR"  // 强制法语发音
+        audioEncoding: "MP3"
       }
     };
 
@@ -39,11 +36,10 @@ export async function onRequest(context) {
 
     const data = await res.json();
 
-    // Gemini 返回 Base64
-    const audioBase64 = data?.candidates?.[0]?.audio?.audioContent;
-    if (!audioBase64) throw new Error("No audio returned from Gemini");
+    // data.audioContent 是 Base64
+    const audioBase64 = data.audioContent;
+    if (!audioBase64) throw new Error("No audio returned");
 
-    // 转为 ArrayBuffer
     const audioBuffer = Uint8Array.from(atob(audioBase64), c => c.charCodeAt(0));
 
     return new Response(audioBuffer, {
