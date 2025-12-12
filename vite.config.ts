@@ -5,13 +5,16 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   build: {
-    target: 'es2015', // Support older browsers/mobile Safari
+    // ES2015 supports older browsers including older Safari versions common in China
+    target: 'es2015', 
     outDir: 'dist',
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks: {
-          // Split vendor code to improve loading reliability
-          vendor: ['react', 'react-dom', 'recharts', 'lucide-react'],
+          // Split large dependencies to improve loading speed
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-ui': ['recharts', 'lucide-react'],
         },
       },
     },
