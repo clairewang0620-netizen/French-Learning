@@ -1,5 +1,5 @@
 // functions/api/tts.js
-// Cloudflare Pages Function: respond to POST { text: "Bonjour" } and return mp3 audio
+// Pages Function: POST { text: "Bonjour" } -> 返回法语 mp3 音频
 export async function onRequest(context) {
   const { request, env } = context;
 
@@ -12,53 +12,53 @@ export async function onRequest(context) {
     const text = (body && body.text) ? String(body.text) : "";
     if (!text) return new Response("Missing text", { status: 400 });
 
-    // Optional: use KV to cache mp3 by hash to avoid repeated TTS generation
-    // Requires you to create and bind a KV namespace named TTS_CACHE in Pages settings.
-    const hash = btoa(text).slice(0, 64); // simple key (ok for demo)
+    // 缓存键（简单实现）
+    const key = `tts:${btoa(text).slice(0,64)}`;
 
+    // 如果设置了 KV 绑定 TTS_CACHE，优先返回缓存
     if (env && env.TTS_CACHE) {
-      const cached = await env.TTS_CACHE.get(hash, { type: "arrayBuffer" });
+      const cached = await env.TTS_CACHE.get(key, { type: "arrayBuffer" });
       if (cached) {
         return new Response(cached, {
-          headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=2592000" },
+          headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=2592000" }
         });
       }
     }
 
-    // === Cloudflare AI TTS (example) ===
-    // NOTE: adjust to the actual API available on your Cloudflare account.
-    // If you do not have Cloudflare AI, you can swap to another TTS provider (ElevenLabs, Google TTS, etc.)
-    // This example presumes an environment binding `AI` (Cloudflare's AI invokable) or uses fetch to a provider.
-
-    // Example: call Cloudflare AI via environment (if available).
-    // If your account does not provide env.AI.run, use fetch to external TTS provider here.
     let audioBuffer;
+
+    // 优先尝试 Cloudflare AI（如果你的账号已支持并绑定 env.AI）
     if (env && env.AI && typeof env.AI.run === "function") {
-      // If you have Cloudflare AI extension available
       const resp = await env.AI.run("@cf/openai/tts-1", {
         model: "gpt-4o-mini-tts",
         input: text,
         voice: "alloy",
         format: "mp3"
       });
-      // resp is ArrayBuffer or similar -- convert to ArrayBuffer if needed
-      audioBuffer = await resp.arrayBuffer?.() ?? resp;
+      // 某些返回类型可直接转 arrayBuffer
+      audioBuffer = await (resp.arrayBuffer ? resp.arrayBuffer() : resp);
     } else {
-      // Fallback: example for using an external TTS endpoint you control (e.g., a paid TTS provider)
-      // Replace PROVIDER_TTS_ENDPOINT and API_KEY with your provider details.
-      const providerResp = await fetch("https://api.your-tts-provider.example/v1/tts", {
+      // Fallback 到第三方 TTS（示例：ElevenLabs / 其它）
+      // 你必须在 Pages 的 Settings -> Environment variables 添加 TTS_PROVIDER_API_KEY
+      const providerKey = env.TTS_PROVIDER_API_KEY || "";
+      if (!providerKey) {
+        return new Response("No TTS provider configured", { status: 502 });
+      }
+
+      // 下面示例为通用 POST 请求，请根据你选的服务调整 headers/body
+      const providerResp = await fetch("https://api.elevenlabs.io/v1/text-to-speech/fr-FR", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${env.TTS_PROVIDER_API_KEY ?? ""}`
+          "xi-api-key": providerKey
         },
         body: JSON.stringify({
           text,
-          voice: "fr-FR",
-          format: "mp3",
-          // provider-specific options...
+          voice: "alloy", // provider-specific
+          format: "mp3"
         }),
       });
+
       if (!providerResp.ok) {
         const txt = await providerResp.text();
         return new Response("TTS provider error: " + txt, { status: 502 });
@@ -66,16 +66,14 @@ export async function onRequest(context) {
       audioBuffer = await providerResp.arrayBuffer();
     }
 
-    // Save to KV (if available)
+    // 写入 KV（如果绑定）
     if (env && env.TTS_CACHE && audioBuffer) {
-      // env.TTS_CACHE.put requires base64 or ArrayBuffer via special option in Worker; for Pages Functions use binary buffer
-      await env.TTS_CACHE.put(hash, audioBuffer);
+      await env.TTS_CACHE.put(key, audioBuffer);
     }
 
     return new Response(audioBuffer, {
-      headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=2592000" },
+      headers: { "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=2592000" }
     });
-
   } catch (err) {
     return new Response("Server error: " + String(err), { status: 500 });
   }
