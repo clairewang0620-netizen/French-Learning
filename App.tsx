@@ -1,57 +1,62 @@
+import { useState } from "react";
 
-import React, { useState, useEffect } from 'react';
-import Layout from './components/Layout';
-import Dashboard from './components/Dashboard';
-import Flashcards from './components/Flashcards';
-import SentencesView from './components/Sentences';
-import GrammarView from './components/GrammarViewer';
-import ReadingView from './components/ReadingViewer';
-import QuizView from './components/Quiz';
-import WrongQuestionsView from './components/WrongQuestions';
+const words = [
+  { word: "Bonjour", meaning: "你好" },
+  { word: "Merci", meaning: "谢谢" },
+  { word: "Au revoir", meaning: "再见" }
+];
 
-import { SAMPLE_WORDS, SAMPLE_SENTENCES, SAMPLE_GRAMMAR, SAMPLE_ARTICLES, SAMPLE_QUIZ } from './constants';
-import { getProgress, addStudyTime } from './services/storageService';
-import { UserProgress } from './types';
+export default function App() {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-const App: React.FC = () => {
-  const [page, setPage] = useState('dashboard');
-  const [progress, setProgress] = useState<UserProgress>(getProgress());
-
-  // Simulate tracking study time
-  useEffect(() => {
-    const interval = setInterval(() => {
-        addStudyTime(1);
-        setProgress(getProgress()); // Update UI
-    }, 60000); // Every minute
-    return () => clearInterval(interval);
-  }, []);
-
-  const renderContent = () => {
-    switch (page) {
-      case 'dashboard':
-        return <Dashboard progress={progress} />;
-      case 'words':
-        return <Flashcards words={SAMPLE_WORDS} />;
-      case 'sentences':
-        return <SentencesView sentences={SAMPLE_SENTENCES} />;
-      case 'grammar':
-        return <GrammarView items={SAMPLE_GRAMMAR} />;
-      case 'reading':
-        return <ReadingView articles={SAMPLE_ARTICLES} />;
-      case 'quiz':
-        return <QuizView questions={SAMPLE_QUIZ} />;
-      case 'review':
-        return <WrongQuestionsView />;
-      default:
-        return <Dashboard progress={progress} />;
+  const speak = (word: string) => {
+    if ("speechSynthesis" in window) {
+      const utterance = new SpeechSynthesisUtterance(word);
+      utterance.lang = "fr-FR";
+      window.speechSynthesis.speak(utterance);
     }
   };
 
-  return (
-    <Layout currentPage={page} onNavigate={setPage}>
-      {renderContent()}
-    </Layout>
-  );
-};
+  const showList = selectedIndex === null;
 
-export default App;
+  return (
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6">
+      <h1 className="text-3xl font-bold mb-4">法语单词学习</h1>
+
+      {showList ? (
+        <ul className="w-full max-w-md bg-white rounded-xl shadow p-4 space-y-2">
+          {words.map((w, idx) => (
+            <li
+              key={idx}
+              className="cursor-pointer p-2 rounded hover:bg-blue-100"
+              onClick={() => setSelectedIndex(idx)}
+            >
+              {w.word}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="w-full max-w-md bg-white rounded-xl shadow p-6 text-center">
+          <h2 className="text-2xl font-bold mb-2">
+            {words[selectedIndex].word}
+          </h2>
+          <p className="text-gray-700 mb-4">
+            {words[selectedIndex].meaning}
+          </p>
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+            onClick={() => speak(words[selectedIndex].word)}
+          >
+            发音
+          </button>
+          <button
+            className="bg-gray-300 px-4 py-2 rounded"
+            onClick={() => setSelectedIndex(null)}
+          >
+            返回列表
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
