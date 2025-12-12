@@ -1,44 +1,70 @@
-
 interface Env {
-  // 如果未来需要使用 KV 或 D1，可以在这里定义
+  AI: any;
 }
 
 export const onRequestPost = async (context: any) => {
+  const { request, env } = context;
+
   try {
-    const { request } = context;
-    
-    // 1. 解析请求体
-    const body = await request.json() as { text: string };
-    const text = body.text;
+    let text = "";
+    try {
+      const body = await request.json() as { text: string };
+      text = body.text;
+    } catch (e) {
+      return new Response("Invalid JSON body", { status: 400 });
+    }
 
     if (!text) {
       return new Response("Text is required", { status: 400 });
     }
 
-    // 2. 构建 Google TTS URL (使用法语 'fr' 引擎)
-    // client=tw-ob 是 Google 公开的 TTS 接口参数
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=fr&client=tw-ob`;
+    // --- STRATEGY 1: Cloudflare Workers AI (Preferred) ---
+    // Requires 'AI' binding in Cloudflare Dashboard -> Pages -> Settings -> Functions
+    if (env.AI) {
+      try {
+        // Using a model known for decent multilingual support
+        // Note: Specific French optimization varies by model, but this is the native way
+        const response = await env.AI.run("@cf/openai/tts-1", {
+            text: text,
+            voice: "alloy", // or 'shimmer', 'onyx', etc.
+            format: "mp3"
+        });
+        
+        return new Response(response, {
+          headers: {
+            "Content-Type": "audio/mpeg",
+            "Cache-Control": "public, max-age=31536000, immutable",
+            "X-Source": "Cloudflare-AI"
+          }
+        });
+      } catch (aiError) {
+        console.error("Cloudflare AI failed, falling back to Google:", aiError);
+        // Fall through to strategy 2
+      }
+    }
 
-    // 3. 伪装 User-Agent 请求 Google 服务器 (防止被拦截)
-    const ttsResponse = await fetch(url, {
+    // --- STRATEGY 2: Google TTS (Fallback) ---
+    // Robust fallback for when AI is not configured or fails
+    const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=fr&client=tw-ob`;
+
+    const ttsResponse = await fetch(googleUrl, {
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Referer": "https://translate.google.com/"
       }
     });
 
     if (!ttsResponse.ok) {
-        throw new Error(`TTS Provider returned ${ttsResponse.status}`);
+        throw new Error(`Google TTS returned status: ${ttsResponse.status}`);
     }
 
-    // 4. 获取音频流
     const audioBlob = await ttsResponse.blob();
 
-    // 5. 返回音频流给前端
     return new Response(audioBlob, {
       headers: {
         "Content-Type": "audio/mpeg",
-        "Cache-Control": "public, max-age=31536000, immutable" // 强缓存，节省流量
+        "Cache-Control": "public, max-age=31536000, immutable",
+        "X-Source": "Google-Fallback"
       }
     });
 
